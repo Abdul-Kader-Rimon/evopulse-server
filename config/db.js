@@ -1,21 +1,26 @@
 ﻿const mongoose = require("mongoose");
 
+let isConnected = false;
+
 const connectDB = async () => {
   const mongoUri = process.env.MONGO_URI;
   const dbName = process.env.DB_NAME;
 
   if (!mongoUri) {
-    console.error("[db] Error: MONGO_URI missing in .env file.");
-    process.exit(1);
+    throw new Error("MONGO_URI missing in environment variables");
   }
+
+  if (isConnected) return;
 
   try {
     const connectOptions = dbName ? { dbName } : {};
-    await mongoose.connect(mongoUri, connectOptions);
-    console.log("[db] MongoDB connected successfully to:", mongoose.connection.name);
+    const conn = await mongoose.connect(mongoUri, connectOptions);
+
+    isConnected = true;
+    console.log("[db] MongoDB connected:", conn.connection.name);
   } catch (error) {
     console.error("[db] MongoDB connection failed:", error.message);
-    process.exit(1);
+    throw error; // ❗ exit না, throw করো
   }
 };
 
